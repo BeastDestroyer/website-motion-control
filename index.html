@@ -4,90 +4,122 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HAND PEN — Neural Particle Engine</title>
-  <meta name="description" content="Futuristic AI-powered 3D particle engine with real-time dual hand tracking and air writing">
-  <meta name="theme-color" content="#050505">
+  <meta name="description" content="AI-powered 3D dual particle engine with hand tracking, voice commands, and air writing">
+  <meta name="theme-color" content="#000000">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- Loading Screen -->
-  <div id="loading">
-    <h1>HAND PEN</h1>
-    <div class="spinner"></div>
-    <p>INITIALIZING NEURAL LINK...</p>
-  </div>
-
-  <!-- Scanline Overlay -->
+  <!-- Loading -->
+  <div id="loading"><h1>HAND PEN</h1><div class="spinner"></div><p>INITIALIZING NEURAL LINK...</p></div>
   <div id="scanlines"></div>
 
-  <!-- Webcam Preview -->
-  <div id="cam-box">
+  <!-- Webcam -->
+  <div id="cam-box" class="cam-hidden">
     <video id="webcam" autoplay playsinline muted></video>
     <canvas id="hand-overlay"></canvas>
     <div id="hand-count">0 HANDS</div>
     <div id="cam-label">DUAL HAND TRACK</div>
   </div>
 
-  <!-- Finger Status Panel -->
-  <div id="finger-info" class="glass">
+  <!-- Finger Panel -->
+  <div id="finger-info" class="glass cam-hidden">
     <div class="lbl" style="margin-bottom:6px">FINGERS</div>
-    <div class="fi-row" id="fi-thumb"><div class="fi-dot" style="background:#ff6b6b"></div><span class="fi-label">THUMB</span><span class="fi-state" style="color:#ff6b6b">—</span></div>
-    <div class="fi-row" id="fi-index"><div class="fi-dot" style="background:#00f0ff"></div><span class="fi-label">INDEX</span><span class="fi-state" style="color:#00f0ff">—</span></div>
-    <div class="fi-row" id="fi-middle"><div class="fi-dot" style="background:#39ff14"></div><span class="fi-label">MIDDLE</span><span class="fi-state" style="color:#39ff14">—</span></div>
-    <div class="fi-row" id="fi-ring"><div class="fi-dot" style="background:#ffbe0b"></div><span class="fi-label">RING</span><span class="fi-state" style="color:#ffbe0b">—</span></div>
-    <div class="fi-row" id="fi-pinky"><div class="fi-dot" style="background:#a855f7"></div><span class="fi-label">PINKY</span><span class="fi-state" style="color:#a855f7">—</span></div>
+    <div class="fi-row" id="fi-thumb"><div class="fi-dot" style="background:#ff6b6b"></div><span class="fi-label">THB</span><span class="fi-state" style="color:#ff6b6b">—</span></div>
+    <div class="fi-row" id="fi-index"><div class="fi-dot" style="background:#00f0ff"></div><span class="fi-label">IDX</span><span class="fi-state" style="color:#00f0ff">—</span></div>
+    <div class="fi-row" id="fi-middle"><div class="fi-dot" style="background:#39ff14"></div><span class="fi-label">MID</span><span class="fi-state" style="color:#39ff14">—</span></div>
+    <div class="fi-row" id="fi-ring"><div class="fi-dot" style="background:#ffbe0b"></div><span class="fi-label">RNG</span><span class="fi-state" style="color:#ffbe0b">—</span></div>
+    <div class="fi-row" id="fi-pinky"><div class="fi-dot" style="background:#a855f7"></div><span class="fi-label">PNK</span><span class="fi-state" style="color:#a855f7">—</span></div>
   </div>
 
   <!-- Info Panel -->
   <div id="info" class="glass">
-    <div class="lbl">ACTIVE SHAPE</div>
+    <div class="lbl">SHAPES</div>
     <div id="shape-name">SPHERE</div>
+    <div id="shape2-name" style="font-size:13px;color:#a855f780;display:none"></div>
     <div id="auto-status">● AUTO-CYCLE ON</div>
     <div id="gesture-status">NO HAND</div>
-    <div class="section-lbl">single hand</div>
-    <ul class="glist">
-      <li><b>☝ Index</b> — Air write (pen must be ON)</li>
-      <li><b>✌ Two fingers</b> — 3D orbit</li>
-      <li><b>✋ Open</b> — Repel particles</li>
-      <li><b>✊ Fist</b> — Stop auto-cycle</li>
-      <li><b>🤏 Pinch in/out</b> — Zoom in/out</li>
-    </ul>
-    <div class="section-lbl">two hands</div>
-    <ul class="glist">
-      <li><b>✋✋ Both open</b> — Explode</li>
-      <li><b>🤏🤏 Both pinch</b> — Fine zoom</li>
-      <li><b>✊ + ✋</b> — Next shape</li>
-    </ul>
+    <div id="active-target" style="font-size:10px;color:#39ff14;margin-top:4px"></div>
   </div>
 
   <!-- Draw Controls -->
   <div id="draw-ctrl" class="glass">
-    <div class="lbl">PEN TOOL</div>
+    <div class="lbl">PEN</div>
     <div class="toggle-btn" id="pen-toggle" onclick="togglePen()">PEN OFF</div>
     <div class="color-row">
       <div class="cdot on" data-c="#00f0ff" style="background:#00f0ff" onclick="setPC(this)"></div>
       <div class="cdot" data-c="#a855f7" style="background:#a855f7" onclick="setPC(this)"></div>
       <div class="cdot" data-c="#ff2d95" style="background:#ff2d95" onclick="setPC(this)"></div>
       <div class="cdot" data-c="#39ff14" style="background:#39ff14" onclick="setPC(this)"></div>
-      <div class="cdot" data-c="#ffffff" style="background:#ffffff" onclick="setPC(this)"></div>
+      <div class="cdot" data-c="#fff" style="background:#fff" onclick="setPC(this)"></div>
     </div>
     <button onclick="clearDraw()">CLEAR ✕</button>
   </div>
 
-  <!-- Mode Badge -->
+  <!-- Voice Status -->
+  <div id="voice-status" class="glass">
+    <div id="mic-icon">🎙</div>
+    <div id="voice-text">Voice OFF</div>
+  </div>
+
+  <!-- Guide Toggle -->
+  <button id="guide-toggle" class="glass" onclick="document.getElementById('guide').classList.toggle('open')">? COMMANDS</button>
+
+  <!-- Command Guide Panel -->
+  <div id="guide" class="glass">
+    <h3>COMMAND GUIDE</h3>
+    <button class="close-btn" onclick="this.parentElement.classList.remove('open')">✕</button>
+    <div class="guide-section">
+      <h4>🖐 ONE HAND GESTURES</h4>
+      <div class="gc"><b>✌ Two fingers (idx+mid)</b> — Zoom in/out (spread/close)</div>
+      <div class="gc"><b>☝ Index only</b> — Air write (pen must be ON)</div>
+      <div class="gc"><b>✋ Open hand</b> — Repel particles</div>
+      <div class="gc"><b>✊ Fist (all down)</b> — Stop auto-cycle</div>
+      <div class="gc"><b>🤏 Pinch (thumb+idx)</b> — Fine zoom</div>
+    </div>
+    <div class="guide-section">
+      <h4>🤲 TWO HAND GESTURES</h4>
+      <div class="gc"><b>✋ + ✌ swipe</b> — 3D orbit (Blender-style)</div>
+      <div class="gc"><b>✋ + triple tap idx</b> — Spawn second shape</div>
+      <div class="gc"><b>✊ + ✋</b> — Next shape</div>
+      <div class="gc"><b>Smash idx+mid on hand</b> — Toggle pen ON/OFF</div>
+      <div class="gc"><b>Zigzag fist</b> — Eraser mode</div>
+    </div>
+    <div class="guide-section">
+      <h4>🎯 ACTIVATION (which shape to control)</h4>
+      <div class="gc"><b>Left hand raised ✋</b> — Control Shape 1</div>
+      <div class="gc"><b>Right hand raised ✋</b> — Control both shapes</div>
+      <div class="gc"><b>Both hands raised ✋✋</b> — Control both shapes</div>
+    </div>
+    <div class="guide-section">
+      <h4>🎙 VOICE COMMANDS (say aloud)</h4>
+      <div class="gc">"show my screen" — Show camera view</div>
+      <div class="gc">"dismiss" — Hide camera view</div>
+      <div class="gc">"pen on" / "pen off" — Toggle pen</div>
+      <div class="gc">"clear" — Clear drawing</div>
+      <div class="gc">"next shape" — Switch shape</div>
+      <div class="gc">"zoom in" / "zoom out"</div>
+      <div class="gc">"second shape" — Spawn shape 2</div>
+      <div class="gc">"eraser" — Toggle eraser</div>
+      <div class="gc">"stop" — Stop auto-cycle</div>
+      <div class="gc">"start" — Start auto-cycle</div>
+      <div class="gc">"reset" — Reset everything</div>
+    </div>
+    <div class="guide-section">
+      <h4>⌨ KEYBOARD</h4>
+      <div class="gc"><b>P</b> — Toggle pen | <b>C</b> — Clear | <b>V</b> — Toggle voice | <b>G</b> — Guide</div>
+    </div>
+  </div>
+
+  <!-- HUD elements -->
   <div id="mode-badge"></div>
-  <!-- FPS -->
   <div id="fps">-- FPS</div>
-  <!-- Flash -->
   <div id="gesture-flash"></div>
 
-  <!-- CDN Scripts -->
+  <!-- CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
-
-  <!-- Application -->
   <script src="app.js"></script>
 </body>
 </html>
